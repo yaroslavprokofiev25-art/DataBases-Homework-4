@@ -16,7 +16,7 @@ create table customers (
 );
 comment on table customers is 'people who rent cars';
 
--- 1:1  (customer_id is both pk and fk -> exactly one profile per customer)
+-- 1:1 бо для кожного клієнта існує рівно один профіль
 create table customer_profiles (
     customer_id varchar(36) primary key references customers(id) on delete cascade,
     driver_license_number varchar(50) not null unique,
@@ -42,15 +42,15 @@ create table car_features (
 );
 comment on table car_features is 'lookup: gps, sunroof, child seat, etc.';
 
--- many:many (a car can have several features, a feature fits many cars)
+-- many:many тому що один автомобіль може мати кілька фіч, а одна фіча може бути в багатьох автомобілях
 create table car_feature_map (
     car_id varchar(36) not null references cars(id) on delete cascade,
     feature_id int not null references car_features(id) on delete cascade,
     primary key (car_id, feature_id)
 );
 comment on table car_feature_map is 'many:many between cars and car_features';
-
--- 1:many from customers, 1:many from cars (main fact table, grows to ~500k rows)
+-- 1:many, бо один клієнт може оформити багато оренд,
+-- і один автомобіль може бути в багатьох орендах у різний час.
 create table rentals (
     id varchar(36) primary key,
     customer_id varchar(36) not null references customers(id),
@@ -63,7 +63,7 @@ create table rentals (
 );
 comment on table rentals is 'one row per rental; 1:many from customers and from cars';
 
--- indexes (rentals is the large table, see main.py)
+-- індекси для оптимізації запитів
 create index idx_rentals_customer_id on rentals(customer_id);
 create index idx_rentals_car_id on rentals(car_id);
 create index idx_rentals_start_date on rentals(start_date);
